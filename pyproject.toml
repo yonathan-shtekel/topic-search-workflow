@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "Kafka-Search-Workflow"
+version = "0.1.0"
+description = ""
+authors = ["Yonathan Shtekel <"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.8, <4"
+temporalio = "^1.1.0"
+confluent-kafka = "^2.3.0"
+pydantic = "^2.5.3"
+pydantic-settings = "^2.1.0"
+urllib3 = "^2.1.0"
+requests = "^2.31.0"
+avro = "^1.11.3"
+fastavro = "^1.9.3"
+avro-python3 = "^1.10.2"
+pyjq = "^2.6.0"
+
+[tool.poetry.dev-dependencies]
+black = "^22.3.0"
+isort = "^5.10.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]
+format = [{cmd = "black ."}, {cmd = "isort ."}]
+lint = [{cmd = "black --check ."}, {cmd = "isort --check-only ."}]
+
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true

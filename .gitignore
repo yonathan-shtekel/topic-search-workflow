@@ -1,0 +1,9 @@
+*/__pycahce__/*
+.mypy_cache/*
+.idea/*
+/.vscode/*
+.env_workflow
+.env
+*/__pycache__/*
+```
+
