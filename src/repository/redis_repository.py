@@ -1,12 +1,6 @@
+import json
 from typing import Dict, List
-
-from pydantic import BaseModel
 from redis import Redis
-
-
-class RedisConfig(BaseModel):
-    host: str
-    port: int
 
 
 class RedisRepository:
@@ -45,7 +39,10 @@ class RedisRepository:
 
     def get_list(self, key: str) -> List[str]:
         res_list = self.client.lrange(key, 0, -1)
-        return [x.decode('utf-8') for x in res_list]
+        return [json.loads(x) for x in res_list]
 
     def list_keys(self) -> List[str]:
         return self.client.keys()
+
+    def exists(self, key: str) -> bool:
+        return self.client.exists(key)

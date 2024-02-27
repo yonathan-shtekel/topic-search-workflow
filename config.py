@@ -1,11 +1,11 @@
 import os
-
 from pydantic_settings import BaseSettings
 
 
 class Env(BaseSettings):
     bootstrap_servers: str
     schema_registry_url: str
+    temporal_url: str
     sasl_username: str
     sasl_password: str
     redis_host: str
@@ -14,7 +14,8 @@ class Env(BaseSettings):
     use_high_watermark_validation: bool = False
 
     class Config:
-        env_file = ".env_workflow"
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        env_file = os.path.join(project_root, "kafka-search", ".env_workflow")
 
 
 settings = Env()

@@ -36,7 +36,7 @@ Before running the project, make sure you have the following dependencies instal
 4. Run the example workflow:
 
     ```bash
-    poetry run python search_workflow.py
+    poetry run python search_worker.py
     ```
 
 ## Project Structure

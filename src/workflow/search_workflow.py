@@ -1,10 +1,8 @@
 from datetime import timedelta
 from temporalio import workflow
-
-from kafka.entites import KafkaQuery
-
+from src.kafka.entites import KafkaQuery
 with workflow.unsafe.imports_passed_through():
-    from activities import get_partitions, topic_search
+    from src.workflow.activities import get_partitions, topic_search
 
 
 @workflow.defn

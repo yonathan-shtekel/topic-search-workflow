@@ -2,12 +2,12 @@ import logging
 import random
 from typing import List
 from temporalio import activity
-from kafka.admin import KafkaAdmin
+from src.kafka.admin import KafkaAdmin
 from config import settings
-from kafka.entites import KafkaQuery
-from kafka.manager import KafkaManager
-from kafka.consumer_avro import ConsumerAvro
-from repository.redis_repository import RedisRepository
+from src.kafka.entites import KafkaQuery
+from src.kafka.manager import KafkaManager
+from src.kafka.consumer_avro import ConsumerAvro
+from src.repository.redis_repository import RedisRepository
 
 TASK_QUEUE_NAME = "topic_search"
 
@@ -48,6 +48,7 @@ async def topic_search(kafka_query: KafkaQuery) -> List[str]:
         'auto.offset.reset': "earliest",
         'security.protocol': 'SASL_SSL',
         'sasl.mechanism': 'PLAIN',
+        'enable.auto.commit': False,
         'sasl.username': settings.sasl_username,
         'sasl.password': settings.sasl_password,
     }

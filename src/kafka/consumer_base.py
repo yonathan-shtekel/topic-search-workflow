@@ -1,15 +1,16 @@
 import json
 import logging
-import os
 import time
-
-import pyjq
 from abc import ABC, abstractmethod
 from typing import Dict
-from confluent_kafka import TopicPartition
-from kafka.entites import KafkaMessage, KafkaQuery
-from repository.redis_repository import RedisRepository, RedisConfig
+
+import pyjq
 from confluent_kafka import Message
+from confluent_kafka import TopicPartition
+
+from src.kafka.entites import KafkaMessage, KafkaQuery
+from src.repository.redis_repository import RedisRepository
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,14 +21,30 @@ class ConsumerBase(ABC):
         self._repository = RedisRepository(redis_config)
         self._partition_id = partition_id
         self._consumer = self._create_consumer()
+        self._offset_cache = set()
 
     @abstractmethod
     def _create_consumer(self) -> None:
         pass
 
     @abstractmethod
-    def consume_messages(self) -> None:
+    def _consume_impl(self) -> None:
         pass
+
+    def consume_messages(self):
+
+        self._consumer.subscribe([self._query.topic])
+
+        logger.info(f"Subscribed to topic {self._query.topic} for partition {self._partition_id}")
+
+        while not self._search_timeout():
+
+            to_break = self._consume_impl()
+
+            if to_break:
+                break
+
+        self.close_consumer()
 
     def assign_partition(self) -> None:
         logger.info(f"Topic {self._query.topic}, Assigning partition {self._partition_id} to consumer")
@@ -48,7 +65,7 @@ class ConsumerBase(ABC):
         if low == -1 or high == -1:
             logger.error(f"Failed to get watermark offsets for partition {self._partition_id}")
 
-        if msg.offset() >= high and (duration/6000) > default_timeout:
+        if msg.offset() >= high and (duration / 6000) > default_timeout:
             logger.info(f"Reached end of partition {self._partition_id}")
             return True
 
@@ -61,8 +78,18 @@ class ConsumerBase(ABC):
         duration_minutes = duration / 60000
 
         if duration_minutes >= float(self._query.time_out):
+            logger.info(f"Search timeout for query {self._query.id}")
             return True
 
+        return False
+
+    def _is_message_duplicate(self, message: Message) -> bool:
+
+        offset = message.offset()
+
+        if offset in self._offset_cache:
+            return True
+        self._offset_cache.add(offset)
         return False
 
     def _query_messages(self, message: KafkaMessage) -> None:

@@ -24,4 +24,4 @@ rm:
 
 
 run-worker:
-	poetry run python run_worker.py
+	poetry run python apps.search_worker.run_worker.py
