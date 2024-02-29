@@ -77,7 +77,7 @@ class ConsumerBase(ABC):
 
         duration_minutes = duration / 60000
 
-        if duration_minutes >= float(self._query.time_out):
+        if duration_minutes >= float(self._query.timeout):
             logger.info(f"Search timeout for query {self._query.id}")
             return True
 

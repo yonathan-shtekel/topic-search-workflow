@@ -1,68 +1,115 @@
-# KafkaSearchWorkflow
+# Kafka Search Workflow
 
 ## Overview
 
-KafkaSearchWorkflow is a sample project showcasing the use of Temporal for building reliable distributed workflows. It utilizes the Temporal framework to orchestrate the execution of two activities: `get_partitions` and `topic_search`.
+KafkaSearchWorkflow is an advanced distributed system designed to perform efficient searches within a Kafka Topics, orchestrated by Temporal workflows. The system scales with Kafka's partitioned topics and facilitates consumer-based search operations and result management.
+
+![KafkaSearchWorkflow Architecture](images/architecture.png)
 
 ## Prerequisites
 
-Before running the project, make sure you have the following dependencies installed:
+Ensure the following dependencies are installed:
 
-- [Temporal Server](https://docs.temporal.io/docs/server/install)
+- [Temporal Server](https://docs.temporal.io/docs/server/install) with UI
 - [Python 3.7+](https://www.python.org/downloads/)
 - [Poetry](https://python-poetry.org/docs/#installation)
+- [Docker and Docker Compose](https://docs.docker.com/compose/install/)
+- [Kafka with SASL authentication](https://kafka.apache.org/documentation/#security_sasl)
 
 ## Getting Started
 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/your-username/KafkaSearchWorkflow.git
+    git clone https://github.com/yonathan-shtekel/topic-search-workflow
     cd KafkaSearchWorkflow
     ```
 
-2. Install dependencies using Poetry:
+2. Install dependencies with Poetry:
 
     ```bash
     poetry install
     ```
 
-3. Run the Temporal Server:
+3. Create a `.env_workflow` file in the root of the project with the following content:
 
-    ```bash
-    temporal start
+    ```env
+    SASL_USERNAME=username
+    SASL_PASSWORD=password
+    BOOTSTRAP_SERVERS=kafka-boostrap-servers:9093
+    SCHEMA_REGISTRY_URL=https://avro-schema-registry.com
+    REDIS_HOST=localhost
+    REDIS_PORT=6379
+    SEARCH_TIMEOUT_MINUTES=20
+    TEMPORAL_URL=localhost:7233
     ```
 
-4. Run the example workflow:
+    Adjust the values as needed for your local setup.
+
+4. Start the Temporal server and Kafka cluster using Docker Compose:
 
     ```bash
-    poetry run python search_worker.py
+    docker-compose up -d
     ```
 
-## Project Structure
+5. Run the search worker to process Kafka messages:
 
-- `activities/`: Contains the activity implementations (`get_partitions`, `topic_search`).
-- `search_workflow.py`: Defines the `KafkaSearchWorkflow` workflow.
-- `main.py`: Script to run the example workflow.
-- `pyproject.toml`: Poetry project file.
+    ```bash
+    poetry run python apps/search_worker/run_worker.py
+    ```
 
-## Workflow Execution
+6. Start the search API server:
 
-The `KafkaSearchWorkflow` orchestrates the execution of two activities:
+    ```bash
+    poetry run python apps/search_api/server.py
+    ```
 
-1. `get_partitions`: Fetches partition information.
-2. `topic_search`: Performs a topic search using the partition information obtained.
+## Starting a Kafka Search
 
-## Configuration
+To initiate a search, send a POST request to the search API with the necessary parameters.
 
-Adjust configuration parameters in `main.py` as needed, such as the Temporal server address and task queue name.
+### Endpoint
 
-## Contributions
+POST http://localhost:5001/api/v1/kafka-search/start
 
-Feel free to contribute to the project by submitting issues or pull requests.
+GET http://localhost:5001/api/v1/kafka-search/results/<search_id>
 
-## License
+### Parameters
 
-This project is licensed under the [MIT License](LICENSE).
+Include a JSON body with these start workflow fields:
 
-Adjust the README file further based on the specifics of your project, such as adding additional configuration details, usage examples, or any other relevant information.
+- `topic`: The Kafka topic to be searched.
+- `jq_query`: The jq query string for filtering messages.
+- `key`: A unique identifier for the search operation.
+
+### Example Request
+
+Use `curl` to start a search:
+
+```bash
+curl -X POST "http://localhost/api/v1/kafka-search/start" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "topic": "your-kafka-topic",
+           "jq_query": ".bilAddresses[] | select(.country == \"United States of America\") | .city",
+           "key": 314234234234
+         }'
+```
+Response
+A successful request returns a search ID and status for tracking the search.
+
+Project Structure
+(Include the project structure as previously discussed)
+
+Workflow Execution
+(Include the workflow execution details as previously discussed)
+
+Docker and Services
+(Include the Docker and services details as previously discussed)
+
+Configuration
+Configuration parameters are managed using the .env_workflow file for local setup. Modify the .env_workflow file to match the specifics of your Kafka and Temporal setup.
+
+License
+Distributed under the MIT License. See LICENSE for more information.
+

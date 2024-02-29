@@ -18,7 +18,7 @@ class KafkaQuery:
     jq_query: Optional[str] = None
     key: Optional[str] = None
     partition_ids: Optional[List[int]] = None
-    time_out: Optional[int] = 15  # Default to 15 minute
+    timeout: Optional[int] = 20
     start_time: Optional[int] = field(
         default_factory=lambda: int(time.time() * 1000)
     )  # Default to current time in milliseconds
